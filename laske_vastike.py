@@ -5,6 +5,9 @@ import time
 import sys
 from hae_postit import hae_postit
 
+'''
+FI31 1428 3000 2074 78
+'''
 
 class vastikelaskelma():
 
@@ -169,133 +172,139 @@ class vastikelaskelma():
 
         return kaikkiDatatSaatu
     
-if __name__ == "__main__":
-    print "\n**** Aloitetaan laskelma ****"
-    laskelma = vastikelaskelma()
-  
-    if not laskelma.check_if_all_data_available():
-        exit()
-  
-    now = datetime.datetime.now()
+    def laske_lasku(self):
 
-    hinnat = laskelma.hae_uusimmat_hinnat()
-
-    #Lasketaan kulutukset
-    kylmavesi_per_talo = laskelma.kylman_veden_kulutus_per_talo(now.year,now.month-1)
-    print kylmavesi_per_talo
-
-    lamminvesi_jyvitys = laskelma.lammin_vesi_jyvitys(now.year,now.month-1)
-
-    autopaikat = laskelma.laske_autopaikat(now.year,now.month-1)
-
-    kierto_per_talo, kokonaiskierto = laskelma.kierto_per_talo(now.year,now.month-1)
-    print "Kierron kokonaiskulutus:", kokonaiskierto
-  
-    yhtion_menot, muutKulutPerTalo, muutKulutSumma = laskelma.hae_muut_yhtion_menot(now.year,now.month-1)
-    print "Muut kulut:%s per talo:%s" %(muutKulutSumma,muutKulutPerTalo)
-
-    lammityksen_kulutus_per_talo, lammitys_kokonaiskulutus = laskelma.lammityksen_kulutus_per_talo(now.year,now.month-1)
-    print "Taloyhtion lammityksen kokonaiskulutus:", lammitys_kokonaiskulutus
-  
-    yhtion_lampiman_veden_kulutus = laskelma.yhtion_lampiman_veden_kulutus(now.year,now.month-1)
-    print "Yhtion lampiman veden kulutus:",yhtion_lampiman_veden_kulutus
-
-    kaukolammon_kokonaiskulutus = laskelma.kaukolammon_kokonaiskulutus(now.year,now.month-1)
-    print "Kaukolammon kokonaiskulutus:", kaukolammon_kokonaiskulutus
-
-    print "*** HINNAT ***"
-    kaukolammon_perusmaksu = hinnat["kaukolampo_perusmaksu"]
-    kaukolammon_perusmaksu_per_talo = kaukolammon_perusmaksu / 7
-    print "Kaukolammon perusmaksu: %s per talo: %s " % (kaukolammon_perusmaksu,kaukolammon_perusmaksu_per_talo)
-  
-    kaukolammon_yksikkohinta = hinnat["kaukolampo_yksikkohinta"]
-    kaukolammon_hinta_mwh = kaukolammon_yksikkohinta * 1000
-    print "Kaukolammon yksikkohinta: %s/kWh %s/mWh" % ( kaukolammon_yksikkohinta,kaukolammon_hinta_mwh)
-  
-    kylmavesi_hinta = hinnat["vesi"]
-    print "Kylma vesi hinta:", kylmavesi_hinta
-  
-    kuution_lammitysenergia = hinnat["kuution_Lammitys"]
-    print "Veden lammitysenergia %skWh per kuutio." %(kuution_lammitysenergia)
-  
-    lamminvesi_hinta = kylmavesi_hinta + ( kuution_lammitysenergia * kaukolammon_yksikkohinta)
-    print "Lampiman veden kuutiohinta:", lamminvesi_hinta
-  
-    kaukolammon_kokonaishinta = round(kaukolammon_perusmaksu + kaukolammon_kokonaiskulutus * kaukolammon_yksikkohinta,2)
-    print "Kaukolammon kokonaishinta:", kaukolammon_kokonaishinta
-
-    lampiman_veden_lammitysenergia = (yhtion_lampiman_veden_kulutus * 53) / 1000
-    print "Lampiman veden lammitysenergia:",lampiman_veden_lammitysenergia
-
-    kierron_kerroin = hinnat["kierron_kerroin"]
-
-    #Lasketaan hukka
-    print "*** HUKKALASKU ***"
-    kaukolammon_kokonaishinta = kaukolammon_kokonaiskulutus * kaukolammon_hinta_mwh
-    print "Kaukolammon kokonaishinta:",kaukolammon_kokonaishinta
-  
-    lammityksen_kokonaishinta = lammitys_kokonaiskulutus * kaukolammon_hinta_mwh
-    print "Lammityksen kokonaishinta:",lammityksen_kokonaishinta
-  
-    kierron_kokonaishinta = kokonaiskierto * kierron_kerroin
-    print "Kierron kokonaishinta:",kierron_kokonaishinta
-  
-    veden_lammityksen_kokonaishinta = lampiman_veden_lammitysenergia * kaukolammon_hinta_mwh
-    print "Veden lammityksen kokonaishinta:",veden_lammityksen_kokonaishinta
-  
-    hukka_hinta_per_talo = round((kaukolammon_kokonaishinta - (lammityksen_kokonaishinta + kierron_kokonaishinta + veden_lammityksen_kokonaishinta)) / 7,2)
-    print "Hukan hinta per talo:",hukka_hinta_per_talo
-  
-    lasku = {"A":{},"B":{},"C":{},"D":{},"E":{},"F":{},"G":{}}
-
-    #Lasketaan hinnat
-    for talo in "ABCDEFG":
-        lasku[talo]["Lammitys"] = round(lammityksen_kulutus_per_talo[talo] * kaukolammon_hinta_mwh + kaukolammon_perusmaksu_per_talo,2)
+        print "\n**** Aloitetaan laskelma ****"
+        #laskelma = vastikelaskelma()
+      
+        if not self.check_if_all_data_available():
+            exit()
+      
+      
+        now = datetime.datetime.now()
     
-        lasku[talo]["KylmaVesi"] = round(kylmavesi_per_talo[talo] * kylmavesi_hinta,2)
+        hinnat = self.hae_uusimmat_hinnat()
     
-        lasku[talo]["LamminVesi"] = round(lamminvesi_jyvitys[talo] * lamminvesi_hinta * yhtion_lampiman_veden_kulutus,2)
+        #Lasketaan kulutukset
+        kylmavesi_per_talo = self.kylman_veden_kulutus_per_talo(now.year,now.month-1)
+        print kylmavesi_per_talo
     
-        lasku[talo]["KiertoVesi"] = round(kierto_per_talo[talo] * kierron_kerroin,2)
+        lamminvesi_jyvitys = self.lammin_vesi_jyvitys(now.year,now.month-1)
     
-        lasku[talo]["hukka"] = hukka_hinta_per_talo
+        autopaikat = self.laske_autopaikat(now.year,now.month-1)
     
-        lasku[talo]["autopaikka"] = round(autopaikat[talo]*hinnat["autopaikka"],2)
+        kierto_per_talo, kokonaiskierto = self.kierto_per_talo(now.year,now.month-1)
+        print "Kierron kokonaiskulutus:", kokonaiskierto
+        
+      
+        yhtion_menot, muutKulutPerTalo, muutKulutSumma = self.hae_muut_yhtion_menot(now.year,now.month-1)
+        print "Muut kulut:%s per talo:%s" %(muutKulutSumma,muutKulutPerTalo)
     
-        lasku[talo]["muut"] = round(muutKulutPerTalo,2)
-    #lasku[talo]["sahko"] = round(yhtion_menot["sahko"]/7,2)
-    #lasku[talo]["ytv"] = round(yhtion_menot["ytv"]/7,2)
-    #lasku[talo]["pankki"] = round(yhtion_menot["pankki"]/7,2)
-    #lasku[talo]["hsy"] = round(yhtion_menot["hsy"]/7,2)
-    #lasku[talo]["lisamaksu"] = round(yhtion_menot["lisamaksu"]/7,2)
-    #lasku[talo]["tilintarkastus"] = round(yhtion_menot["tilijavero"]/7,2)
-    #lasku[talo]["kirjanpito"] = round(yhtion_menot["kirjanpito"]/7,2)
-
-    print "MUUT TALOYHTION MENOT"
-    for item in yhtion_menot:
-        print item, yhtion_menot[item], round(yhtion_menot[item]/7,2)
-
-    print "\n\nTALOKOHTAISET LASKELMAT"
-    taloyhtion_totaali = 0
-    for talo in "ABCDEFG":
-        #print lasku[talo]
-        talon_totaali = 0
-        laskuRivi = ""
-        for item in lasku[talo]:
-            laskuRivi += item + ":"+str(lasku[talo][item]) + " "
-            talon_totaali += lasku[talo][item]
-        print talo, laskuRivi, talon_totaali,"\n"
-        taloyhtion_totaali += talon_totaali
+        lammityksen_kulutus_per_talo, lammitys_kokonaiskulutus = self.lammityksen_kulutus_per_talo(now.year,now.month-1)
+        print "Taloyhtion lammityksen kokonaiskulutus:", lammitys_kokonaiskulutus
+      
+        yhtion_lampiman_veden_kulutus = self.yhtion_lampiman_veden_kulutus(now.year,now.month-1)
+        print "Yhtion lampiman veden kulutus:",yhtion_lampiman_veden_kulutus
+    
+        kaukolammon_kokonaiskulutus = self.kaukolammon_kokonaiskulutus(now.year,now.month-1)
+        print "Kaukolammon kokonaiskulutus:", kaukolammon_kokonaiskulutus
+    
+        print "*** HINNAT ***"
+        kaukolammon_perusmaksu = hinnat["kaukolampo_perusmaksu"]
+        kaukolammon_perusmaksu_per_talo = kaukolammon_perusmaksu / 7
+        print "Kaukolammon perusmaksu: %s per talo: %s " % (kaukolammon_perusmaksu,kaukolammon_perusmaksu_per_talo)
+      
+        kaukolammon_yksikkohinta = hinnat["kaukolampo_yksikkohinta"]
+        kaukolammon_hinta_mwh = kaukolammon_yksikkohinta * 1000
+        print "Kaukolammon yksikkohinta: %s/kWh %s/mWh" % ( kaukolammon_yksikkohinta,kaukolammon_hinta_mwh)
+      
+        kylmavesi_hinta = hinnat["vesi"]
+        print "Kylma vesi hinta:", kylmavesi_hinta
+      
+        kuution_lammitysenergia = hinnat["kuution_Lammitys"]
+        print "Veden lammitysenergia %skWh per kuutio." %(kuution_lammitysenergia)
+      
+        lamminvesi_hinta = kylmavesi_hinta + ( kuution_lammitysenergia * kaukolammon_yksikkohinta)
+        print "Lampiman veden kuutiohinta:", lamminvesi_hinta
+      
+        kaukolammon_kokonaishinta = round(kaukolammon_perusmaksu + kaukolammon_kokonaiskulutus * kaukolammon_yksikkohinta,2)
+        print "Kaukolammon kokonaishinta:", kaukolammon_kokonaishinta
+    
+        lampiman_veden_lammitysenergia = (yhtion_lampiman_veden_kulutus * 53) / 1000
+        print "Lampiman veden lammitysenergia:",lampiman_veden_lammitysenergia
+    
+        kierron_kerroin = hinnat["kierron_kerroin"]
+    
+        #Lasketaan hukka
+        print "*** HUKKALASKU ***"
+        kaukolammon_kokonaishinta = kaukolammon_kokonaiskulutus * kaukolammon_hinta_mwh
+        print "Kaukolammon kokonaishinta:",kaukolammon_kokonaishinta
+      
+        lammityksen_kokonaishinta = lammitys_kokonaiskulutus * kaukolammon_hinta_mwh
+        print "Lammityksen kokonaishinta:",lammityksen_kokonaishinta
+      
+        kierron_kokonaishinta = kokonaiskierto * kierron_kerroin
+        print "Kierron kokonaishinta:",kierron_kokonaishinta
+      
+        veden_lammityksen_kokonaishinta = lampiman_veden_lammitysenergia * kaukolammon_hinta_mwh
+        print "Veden lammityksen kokonaishinta:",veden_lammityksen_kokonaishinta
+      
+        hukka_hinta_per_talo = round((kaukolammon_kokonaishinta - (lammityksen_kokonaishinta + kierron_kokonaishinta + veden_lammityksen_kokonaishinta)) / 7,2)
+        print "Hukan hinta per talo:",hukka_hinta_per_talo
+      
+        lasku = {"A":{},"B":{},"C":{},"D":{},"E":{},"F":{},"G":{}}
+    
+        #Lasketaan hinnat
+        for talo in "ABCDEFG":
+            lasku[talo]["Lammitys"] = round(lammityksen_kulutus_per_talo[talo] * kaukolammon_hinta_mwh + kaukolammon_perusmaksu_per_talo,2)
+        
+            lasku[talo]["KylmaVesi"] = round(kylmavesi_per_talo[talo] * kylmavesi_hinta,2)
+        
+            lasku[talo]["LamminVesi"] = round(lamminvesi_jyvitys[talo] * lamminvesi_hinta * yhtion_lampiman_veden_kulutus,2)
+        
+            lasku[talo]["KiertoVesi"] = round(kierto_per_talo[talo] * kierron_kerroin,2)
+        
+            lasku[talo]["hukka"] = hukka_hinta_per_talo
+        
+            lasku[talo]["autopaikka"] = round(autopaikat[talo]*hinnat["autopaikka"],2)
+        
+            lasku[talo]["muut"] = round(muutKulutPerTalo,2)
+    
+    
+        laskutus = {}
+        laskutus['YhtionMenot'] = yhtion_menot
+        #print "MUUT TALOYHTION MENOT"
+        #for item in yhtion_menot:
+            #print item, yhtion_menot[item], round(yhtion_menot[item]/7,2)
             
-    print "Total:",taloyhtion_totaali
-
-
-
-
-
-#  with open('data.txt', 'w') as outfile:
-#    json.dump(laskelma.vastike, outfile)
-
-
-
-  
+    
+        #rint "\n\nTALOKOHTAISET LASKELMAT"
+        taloyhtion_totaali = 0
+        for talo in "ABCDEFG":
+            #print lasku[talo]
+            talon_totaali = 0
+            laskuRivi = ""
+            for item in lasku[talo]:
+                laskuRivi += item + ":"+str(lasku[talo][item]) + " "
+                talon_totaali += lasku[talo][item]
+            #print talo, laskuRivi, talon_totaali,"\n"
+            laskutus[talo] = lasku[talo]
+            taloyhtion_totaali += talon_totaali
+                
+        print "Total:",taloyhtion_totaali
+        return laskutus
+    
+      
+if __name__ == "__main__":
+    myObj = vastikelaskelma()
+    lasku = myObj.laske_lasku()
+    lasku_total = 0
+    print "******************* LASKUTUS ********************"
+    for talo in "ABCDEFG":
+        summa = 0
+        for item in lasku[talo]:
+            summa += lasku[talo][item]
+        lasku_total += summa
+        print talo, lasku[talo], summa
+    print lasku['YhtionMenot']
+    print lasku_total
