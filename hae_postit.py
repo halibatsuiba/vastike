@@ -230,6 +230,8 @@ class hae_postit():
 
                                 if mittari.lower().find('kirjanpito') > -1:
                                     vastikeLukemat["yhtionmenot"][raporttikausi]["kirjanpito"] = float(lukema)
+                                    
+                                    vastikeLukemat["yhtionmenot"][raporttikausi]["lisamaksu"] = 125.00
 
 
                 if taloTunniste == "NA":
@@ -237,9 +239,7 @@ class hae_postit():
                 else:
                     #Put values to table
                     vastikeLukemat["talot"][taloTunniste][raporttikausi] = talon_lukemat
-    
-                    print "Talo %s, kausi %s" % (taloTunniste, raporttikausi)
-                    print vastikeLukemat["talot"][taloTunniste][raporttikausi]
+
 
                     
                 #typ, response = conn.store(num, '+FLAGS', r'(\Seen)')
