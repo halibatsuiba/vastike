@@ -65,7 +65,17 @@ class hae_postit():
         timeFrameStr = '(SINCE '+fromDate+' BEFORE '+toDate+')'
         kausiStr = str(startMonth).zfill(2)+str(startYear)
         
-        return timeFrameStr, kausiStr
+        if startMonth == 1:
+            prevMonth = 12
+            prevYear = startYear -1
+        else:
+            prevMonth = startMonth -1
+            prevYear = startYear
+            
+        prevKausiStr = str(prevMonth).zfill(2)+str(prevYear)
+        print timeFrameStr, kausiStr, prevKausiStr
+        
+        return timeFrameStr, kausiStr, prevKausiStr
     
     def is_number(self,s):
         try:
@@ -99,15 +109,20 @@ class hae_postit():
         conn.login(tunnus, salasana)
         conn.select()
 
-        timeframe, raporttikausi = mailObj.get_current_timeframe()
+        timeframe, raporttikausi, prevKausi = mailObj.get_current_timeframe()
         print timeframe, raporttikausi
         typ, data = conn.search(None, timeframe)
 
         with open('data.txt') as data_file:    
             vastikeLukemat = json.load(data_file)
+
         
         try:
+            for taloTunniste in "ABCDEFG":
+                vastikeLukemat["talot"][taloTunniste][raporttikausi] = {}
+                
             for num in data[0].split():
+                
                 typ, msg_data = conn.fetch(num, '(RFC822)')
                 for response_part in msg_data:
                     if isinstance(response_part, tuple):
@@ -136,10 +151,11 @@ class hae_postit():
                         
                         #talon_lukemat["Talo"] = mailObj.handle_subject(subject)
                         taloTunniste = mailObj.etsi_talotunniste(subject)
+                        
 
                         #kaikkiLukemat = text.rstrip().split('\r\n')
                         kaikkiLukemat = text.rstrip().split('\n')
-                       
+                        talon_lukemat = {}
                         for mittariLukema in kaikkiLukemat:
                             
                             mittariLukema = mittariLukema.rstrip('\r')
@@ -166,16 +182,16 @@ class hae_postit():
 
                                 # Talojen mittarit
                                 if mittari.lower().find('kylmä') > -1:
-                                  talon_lukemat["KylmaVesi"] = int(lukema)
+                                    talon_lukemat["KylmaVesi"] = int(lukema)
                                   
                                 if mittari.lower().find('kuuma') > -1:
-                                  talon_lukemat["LamminVesi"] = int(lukema)
+                                    talon_lukemat["LamminVesi"] = int(lukema)
                                   
                                 if mittari.lower().find('kierto') > -1:
-                                  talon_lukemat["KiertoVesi"] = int(lukema)
+                                    talon_lukemat["KiertoVesi"] = int(lukema)
                                   
                                 if mittari.lower().find('lämmitys') > -1:
-                                  talon_lukemat["Lammitys"] = int(lukema)
+                                    talon_lukemat["Lammitys"] = int(lukema)
     
                                 #Yhtion mittarit
                                 try:
@@ -204,7 +220,7 @@ class hae_postit():
                                     vastikeLukemat["yhtionmenot"][raporttikausi]["ytv"] = float(lukema)
 
                                 if mittari.lower().find('pankki') > -1:
-                                   vastikeLukemat["yhtionmenot"][raporttikausi]["pankki"] = float(lukema)
+                                    vastikeLukemat["yhtionmenot"][raporttikausi]["pankki"] = float(lukema)
 
                                 if mittari.lower().find('hsy') > -1:
                                     vastikeLukemat["yhtionmenot"][raporttikausi]["hsy"] = float(lukema)
@@ -219,11 +235,12 @@ class hae_postit():
                 if taloTunniste == "NA":
                     print "JOTAIN VIKAA VIKAA VIKAA..."
                 else:
-                    print "Talo",taloTunniste
-                    print talon_lukemat
-
                     #Put values to table
                     vastikeLukemat["talot"][taloTunniste][raporttikausi] = talon_lukemat
+    
+                    print "Talo %s, kausi %s" % (taloTunniste, raporttikausi)
+                    print vastikeLukemat["talot"][taloTunniste][raporttikausi]
+
                     
                 #typ, response = conn.store(num, '+FLAGS', r'(\Seen)')
         finally:
@@ -234,6 +251,10 @@ class hae_postit():
             conn.logout()
 
         print vastikeLukemat["yhtionmenot"][raporttikausi]
+
+        for taloTunniste in "ABCDEFG":        
+            print taloTunniste, vastikeLukemat["talot"][taloTunniste][raporttikausi]
+        
         #Kirjoita tiedot tiedostoon
         with open('data.txt', 'w') as outfile:
             json.dump(vastikeLukemat, outfile)            
