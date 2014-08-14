@@ -156,6 +156,7 @@ class hae_postit():
                         #kaikkiLukemat = text.rstrip().split('\r\n')
                         kaikkiLukemat = text.rstrip().split('\n')
                         talon_lukemat = {}
+                        talon_lukemat["AsukasLuku"] = vastikeLukemat["talot"][taloTunniste][prevKausi]["AsukasLuku"]
                         for mittariLukema in kaikkiLukemat:
                             
                             mittariLukema = mittariLukema.rstrip('\r')
@@ -192,6 +193,9 @@ class hae_postit():
                                   
                                 if mittari.lower().find('lämmitys') > -1:
                                     talon_lukemat["Lammitys"] = int(lukema)
+                                    
+                                if mittari.lower().find('asukasluku') > -1:
+                                    talon_lukemat["AsukasLuku"] = int(lukema)
     
                                 #Yhtion mittarit
                                 try:
