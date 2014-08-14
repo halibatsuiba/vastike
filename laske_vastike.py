@@ -5,9 +5,7 @@ import time
 import sys
 from hae_postit import hae_postit
 
-'''
-FI31 1428 3000 2074 78
-'''
+
 
 class vastikelaskelma():
 
