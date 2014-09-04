@@ -6,6 +6,7 @@ import HTMLParser
 import quopri
 import datetime
 import json
+from email.header import decode_header
 
 class hae_postit():
     def __init__(self):
@@ -22,10 +23,10 @@ class hae_postit():
     Palauttaa "NA" jos ei loydy.
     '''
     def etsi_talotunniste(self, subject):
-
-        if subject.lower().find("talo") > -1:
+        tunniste = decode_header(subject)[0][0]
+        if tunniste.lower().find("talo") > -1:
             try:
-                taloTunniste = subject.split(" ")
+                taloTunniste = tunniste.split(" ")
 
                 for item in taloTunniste:
                   if len(item) == 1 and item in "ABCDEFG":
@@ -159,7 +160,7 @@ class hae_postit():
                         for mittariLukema in kaikkiLukemat:
                             
                             mittariLukema = mittariLukema.rstrip('\r')
-
+                            #print mittariLukema
                             #Jos talotunnistetta ei ollut otsikossa, etsi sita viestista
                             if taloTunniste == "NA":
                                 if mittariLukema.lower().find("talo") > -1:
@@ -168,12 +169,20 @@ class hae_postit():
                                         
                                     if mittariLukema.find(":") > -1 :
                                         taloTunniste = mittariLukema.split(":")[1]
-                                    
-                            
+
+                            lukema = None
+                            mittari = None
+                            mittariLukema = mittariLukema.strip().replace(" ","")
                             if mittariLukema.find(":") > -1:
                                 lukema = mittariLukema.split(":")[1]#.replace(".",",")
                                 mittari = mittariLukema.split(":")[0]
+                            elif mittariLukema.find("=") > -1:
+                                print mittariLukema
+                                lukema = mittariLukema.split("=")[1]#.replace(".",",")
+                                mittari = mittariLukema.split("=")[0]
+
                                     
+                            if (mittari<>None) and (lukema<>None):
                                 if not self.is_number(lukema):
                                     #print "Einumero!"
                                     lukema = 0
@@ -181,16 +190,17 @@ class hae_postit():
                                     lukema = lukema.rstrip()
 
                                 # Talojen mittarit
-                                if mittari.lower().find('kylmä') > -1:
+                                if mittari.lower().find('kylm') > -1:
                                     talon_lukemat["KylmaVesi"] = int(lukema)
                                   
-                                if mittari.lower().find('kuuma') > -1:
+                                if mittari.lower().find('kuum') > -1:
                                     talon_lukemat["LamminVesi"] = int(lukema)
                                   
                                 if mittari.lower().find('kierto') > -1:
                                     talon_lukemat["KiertoVesi"] = int(lukema)
                                   
-                                if mittari.lower().find('lämmitys') > -1:
+                                if mittari.lower().find('mmitys') > -1:
+                                    lukema = lukema.replace('.','')
                                     talon_lukemat["Lammitys"] = int(lukema)
     
                                 #Yhtion mittarit
@@ -231,13 +241,13 @@ class hae_postit():
                                 if mittari.lower().find('kirjanpito') > -1:
                                     vastikeLukemat["yhtionmenot"][raporttikausi]["kirjanpito"] = float(lukema)
                                     
-                                    vastikeLukemat["yhtionmenot"][raporttikausi]["lisamaksu"] = 125.00
-
+                                vastikeLukemat["yhtionmenot"][raporttikausi]["lisamaksu"] = 175.00
 
                 if taloTunniste == "NA":
                     print "JOTAIN VIKAA VIKAA VIKAA..."
                 else:
                     #Put values to table
+                    
                     vastikeLukemat["talot"][taloTunniste][raporttikausi] = talon_lukemat
 
 
@@ -251,6 +261,7 @@ class hae_postit():
             conn.logout()
 
         print vastikeLukemat["yhtionmenot"][raporttikausi]
+        print vastikeLukemat["yhtionmittarit"][raporttikausi]
 
         for taloTunniste in "ABCDEFG":        
             print taloTunniste, vastikeLukemat["talot"][taloTunniste][raporttikausi]
